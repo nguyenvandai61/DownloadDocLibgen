@@ -5,30 +5,52 @@ import urllib3
 import requests
 from urllib import parse
 
+class BookLink:
+    def __init__(self, nameArr, linkArr, sizeArr):
+        self.nameArr = nameArr
+        self.linkArr = linkArr
+        self.sizeArr = sizeArr
 
-
-def scrape_and_run(topic, n):
+def scrape_and_run(topic, n=3, var="title"):
     # scrape on goodreads.com using desire genre type or key word
     # and save the titles and autors in a csv file
-    link = "http://libgen.is/search.php?lg_topic=libgen&open=0&view=simple&phrase=1&column=def&sort=year&sortmode=DESC"+"&req="+topic+"&res="+str(n)
-    page = requests.get(link)
+    link = "http://libgen.is/search.php"
+    print(var)
+    page = requests.get(link, {
+        "lg_topic": "libgen",
+        "open": 0,
+        "view": "simple",
+        "phrase": 1,
+        "column": "def",
+        "sort": var,
+        "sortmode": "DESC",
+        "req": topic,
+        "res": str(n)
+    })
     soup = bs(page.content, 'html.parser')
 
     nameArr = []
     linkArr = []
+    sizeArr = []
 
     # Tim truoc roi download
     for i in range(2, n+2):
-            
+        # Add link download
         l = "table.c >tr:nth-child("+str(i)+") > td:nth-child(10) > a"
-        print(l)
         a = soup.select(l)
-        print(a)
         linkdir = a[0].get("href")
         linkArr.append(linkdir)
-        nameArr.append(i)
-    
-    download(nameArr, linkArr, topic)
+        # Add book title
+        l = "table.c > tr:nth-child("+str(i)+") > td:nth-child(3) > a"
+        a = soup.select(l)
+        nameArr.append(a[0].text)
+        # Add size of book
+        l = "table.c > tr:nth-child("+str(i)+") > td:nth-child(8)"
+        a = soup.select(l)
+        print(a)
+        sizeArr.append(a[0].text)
+        
+    return BookLink(nameArr, linkArr, sizeArr)
     
     
 
@@ -36,7 +58,7 @@ def scrape_and_run(topic, n):
     
 
 
-def download(nameArr, linkArr, topic):
+def download(BookLink, topic):
     file_dir = os.getcwd() + "\\download\\" + topic
 
     # check if the desire genre path exists
@@ -44,7 +66,7 @@ def download(nameArr, linkArr, topic):
     if not os.path.exists(file_dir):
         os.makedirs(file_dir)
 
-    names_urls = zip(nameArr, linkArr)
+    names_urls = zip(BookLink.nameArr, BookLink.linkArr)
 
     
 
@@ -71,6 +93,6 @@ def download(nameArr, linkArr, topic):
         r.release_conn()
 
 
-# if __name__ == '__main__':
-#     topic = 'typescript'
-#     scrape_and_run(topic)
+if __name__ == '__main__':
+    topic = 'typescript'
+    scrape_and_run(topic, 4, "year")

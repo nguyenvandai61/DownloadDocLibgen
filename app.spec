@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['App\\app.py'],
-             pathex=['App', 'E:\\ML\\DownloadDoc'],
+             pathex=['App/', 'E:\\ML\\DownloadDoc'],
              binaries=[],
              datas=[],
              hiddenimports=[],
